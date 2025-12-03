@@ -37,6 +37,11 @@ app.use((req, res, next) => {
   next();
 });
 
+// ✅ RUTA RAÍZ - Redirige a /productos
+app.get('/', (req, res) => {
+  res.redirect('/productos');
+});
+
 function requireLogin(req, res, next) {
   if (!req.session.user) {
     return res.redirect('/productos?loginError=Debes iniciar sesión para continuar.');
@@ -272,7 +277,6 @@ app.post('/checkout', requireLogin, (req, res) => {
   });
 });
 
-// ✅ RUTA HISTORIAL CORREGIDA
 app.get('/historial', requireLogin, (req, res) => {
   const userId = req.session.user.id;
 
@@ -290,11 +294,10 @@ app.get('/historial', requireLogin, (req, res) => {
     }
 
     if (ordenes.length === 0) {
-      // ✅ CORRECCIÓN: Agregada variable ordenExitosa
       return res.render('historial', {
         ordenes: [],
         detallesPorOrden: {},
-        ordenExitosa: req.query.ordenExitosa === '1'  // 👈 ESTA ES LA CORRECCIÓN
+        ordenExitosa: req.query.ordenExitosa === '1'
       });
     }
 
@@ -322,17 +325,15 @@ app.get('/historial', requireLogin, (req, res) => {
         detallesPorOrden[d.orden_id].push(d);
       }
 
-      // ✅ CORRECCIÓN: Agregada variable ordenExitosa
       res.render('historial', {
         ordenes,
         detallesPorOrden,
-        ordenExitosa: req.query.ordenExitosa === '1'  // 👈 ESTA ES LA CORRECCIÓN
+        ordenExitosa: req.query.ordenExitosa === '1'
       });
     });
   });
 });
 
-// ✅ TICKET PDF MEJORADO - Genera un ticket profesional
 app.get('/ticket/:ordenId', requireLogin, (req, res) => {
   const userId = req.session.user.id;
   const ordenId = req.params.ordenId;
@@ -370,7 +371,6 @@ app.get('/ticket/:ordenId', requireLogin, (req, res) => {
         return res.status(500).send('Error al obtener detalles.');
       }
 
-      // ===== GENERAR PDF PROFESIONAL =====
       const doc = new PDFDocument({ 
         size: 'LETTER',
         margins: { top: 50, bottom: 50, left: 50, right: 50 }
@@ -381,23 +381,19 @@ app.get('/ticket/:ordenId', requireLogin, (req, res) => {
 
       doc.pipe(res);
 
-      // ENCABEZADO
       doc.fontSize(24).font('Helvetica-Bold').text('TechStore', { align: 'center' });
       doc.fontSize(10).font('Helvetica').text('Tienda en línea de tecnología', { align: 'center' });
       doc.moveDown(0.5);
       doc.fontSize(9).text('www.techstore.com | contacto@techstore.com', { align: 'center' });
       doc.moveDown(1);
 
-      // Línea separadora
       doc.strokeColor('#333333').lineWidth(2);
       doc.moveTo(50, doc.y).lineTo(562, doc.y).stroke();
       doc.moveDown(1);
 
-      // TÍTULO DEL TICKET
       doc.fontSize(18).font('Helvetica-Bold').text('TICKET DE COMPRA', { align: 'center' });
       doc.moveDown(1);
 
-      // Información de la orden
       const fechaOrden = new Date(orden.fecha_orden);
       const fechaFormateada = fechaOrden.toLocaleDateString('es-MX', {
         year: 'numeric',
@@ -414,21 +410,18 @@ app.get('/ticket/:ordenId', requireLogin, (req, res) => {
       doc.text(`Email: ${orden.email}`, 50, doc.y);
       doc.moveDown(1.5);
 
-      // Línea separadora
       doc.strokeColor('#cccccc').lineWidth(1);
       doc.moveTo(50, doc.y).lineTo(562, doc.y).stroke();
       doc.moveDown(1);
 
-      // TABLA DE PRODUCTOS
       doc.fontSize(12).font('Helvetica-Bold').text('PRODUCTOS COMPRADOS', { align: 'center' });
       doc.moveDown(0.8);
 
-      // Encabezados de tabla
       const tableTop = doc.y;
-      const col1 = 50;   // Producto
-      const col2 = 300;  // Cantidad
-      const col3 = 380;  // Precio Unit.
-      const col4 = 480;  // Subtotal
+      const col1 = 50;
+      const col2 = 300;
+      const col3 = 380;
+      const col4 = 480;
 
       doc.fontSize(10).font('Helvetica-Bold');
       doc.text('Producto', col1, tableTop);
@@ -436,15 +429,12 @@ app.get('/ticket/:ordenId', requireLogin, (req, res) => {
       doc.text('Precio', col3, tableTop);
       doc.text('Subtotal', col4, tableTop);
       
-      // Línea debajo de encabezados
       doc.moveTo(50, tableTop + 15).lineTo(562, tableTop + 15).stroke();
 
       let yPosition = tableTop + 25;
       doc.font('Helvetica').fontSize(9);
 
-      // Listar productos
       detalles.forEach(det => {
-        // Verificar si necesitamos una nueva página
         if (yPosition > 700) {
           doc.addPage();
           yPosition = 50;
@@ -461,12 +451,10 @@ app.get('/ticket/:ordenId', requireLogin, (req, res) => {
         yPosition += 20;
       });
 
-      // Línea antes del total
       doc.strokeColor('#cccccc').lineWidth(1);
       doc.moveTo(50, yPosition + 5).lineTo(562, yPosition + 5).stroke();
       doc.moveDown(1);
 
-      // TOTAL
       yPosition += 20;
       const totalNumero = Number(orden.total || 0);
       
@@ -474,7 +462,6 @@ app.get('/ticket/:ordenId', requireLogin, (req, res) => {
       doc.text('TOTAL:', 380, yPosition);
       doc.text(`$${totalNumero.toFixed(2)}`, 480, yPosition);
 
-      // PIE DE PÁGINA
       doc.fontSize(8).font('Helvetica').fillColor('#666666');
       doc.text('¡Gracias por tu compra!', 50, 720, { align: 'center' });
       doc.text('Este ticket es válido como comprobante de compra', 50, 735, { align: 'center' });
@@ -485,7 +472,6 @@ app.get('/ticket/:ordenId', requireLogin, (req, res) => {
   });
 });
 
-// ✅ NUEVO: REPORTE COMPLETO EN PDF
 app.get('/reporte-completo-pdf', requireLogin, (req, res) => {
   const userId = req.session.user.id;
 
@@ -526,7 +512,6 @@ app.get('/reporte-completo-pdf', requireLogin, (req, res) => {
         return res.status(500).send('Error al generar el reporte');
       }
 
-      // Organizar detalles por orden
       const detallesPorOrden = {};
       detalles.forEach(det => {
         if (!detallesPorOrden[det.orden_id]) {
@@ -535,7 +520,6 @@ app.get('/reporte-completo-pdf', requireLogin, (req, res) => {
         detallesPorOrden[det.orden_id].push(det);
       });
 
-      // ===== GENERAR PDF =====
       const doc = new PDFDocument({ margin: 50 });
 
       res.setHeader('Content-Type', 'application/pdf');
@@ -543,14 +527,12 @@ app.get('/reporte-completo-pdf', requireLogin, (req, res) => {
 
       doc.pipe(res);
 
-      // Título
       doc.fontSize(22).font('Helvetica-Bold').text('HISTORIAL DE COMPRAS', { align: 'center' });
       doc.moveDown(0.5);
       doc.fontSize(12).font('Helvetica').text(`Cliente: ${req.session.user.nombre}`, { align: 'center' });
       doc.fontSize(10).text(`Generado: ${new Date().toLocaleDateString('es-MX')}`, { align: 'center' });
       doc.moveDown(2);
 
-      // Recorrer cada orden
       ordenes.forEach((orden, index) => {
         if (index > 0) {
           doc.addPage();
@@ -570,7 +552,6 @@ app.get('/reporte-completo-pdf', requireLogin, (req, res) => {
         doc.text(`Total: $${Number(orden.total).toFixed(2)}`);
         doc.moveDown(1);
 
-        // Productos de esta orden
         doc.fontSize(12).font('Helvetica-Bold').text('Productos:');
         doc.moveDown(0.5);
         doc.fontSize(10).font('Helvetica');
