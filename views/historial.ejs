@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Historial de compras</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header>
+    <h1>Historial de compras</h1>
+    <nav>
+      <a href="/productos">Productos</a>
+      <a href="/carrito">Carrito</a>
+    </nav>
+  </header>
+
+  <main class="carrito-main">
+    <% if (ordenExitosa) { %>
+      <div class="success-msg">
+        ¡Tu compra se realizó correctamente!
+      </div>
+    <% } %>
+
+    <% if (!ordenes.length) { %>
+      <p>No tienes compras registradas.</p>
+    <% } else { %>
+      <% ordenes.forEach(orden => { 
+           const totalNumero = Number(orden.total || 0);
+           let fechaMostrada = orden.fecha_orden;
+           if (fechaMostrada instanceof Date) {
+             fechaMostrada = fechaMostrada.toISOString().slice(0, 19).replace('T', ' ');
+           }
+      %>
+        <section class="orden-card">
+          <h2>Orden #<%= orden.id %></h2>
+          <p><strong>Fecha:</strong> <%= fechaMostrada %></p>
+          <p><strong>Total:</strong> $<%= totalNumero.toFixed(2) %></p>
+
+          <h3>Productos</h3>
+          <table class="tabla-carrito">
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th>Precio unitario</th>
+                <th>Cantidad</th>
+                <th>Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% (detallesPorOrden[orden.id] || []).forEach(det => { 
+                   const precioUnit = Number(det.precio_unitario || 0);
+                   const subtotal = Number(det.subtotal || 0);
+              %>
+                <tr>
+                  <td><%= det.producto_nombre %></td>
+                  <td>$<%= precioUnit.toFixed(2) %></td>
+                  <td><%= det.cantidad %></td>
+                  <td>$<%= subtotal.toFixed(2) %></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+
+          <!-- Botón para ticket en PDF -->
+          <a href="/ticket/<%= orden.id %>" class="btn-secondary" target="_blank">
+            Ver ticket PDF
+          </a>
+        </section>
+      <% }) %>
+    <% } %>
+  </main>
+</body>
+</html>

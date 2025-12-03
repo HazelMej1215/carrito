@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TechStore - Catálogo</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <h1>TechStore</h1>
+      <nav>
+        <a href="/productos">Productos</a>
+        <% if (user) { %>
+          <a href="/carrito">Carrito (<%= cartCount %>)</a>
+          <a href="/historial">Mis Órdenes</a>
+          <span>Hola, <%= user.nombre %></span>
+          <form action="/logout" method="POST" style="display:inline;">
+            <button type="submit" class="btn-logout">Cerrar Sesión</button>
+          </form>
+        <% } else { %>
+          <a href="/carrito">Carrito (<%= cartCount %>)</a>
+          <button class="btn-primary" onclick="openModal('loginModal')">Iniciar Sesión</button>
+          <button class="btn-secondary" onclick="openModal('registroModal')">Registrarse</button>
+        <% } %>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <h2>Catálogo de Productos</h2>
+
+    <% if (loginError) { %>
+      <div class="error-message"><%= loginError %></div>
+    <% } %>
+    <% if (registroError) { %>
+      <div class="error-message"><%= registroError %></div>
+    <% } %>
+
+    <div class="productos-grid">
+      <% productos.forEach(producto => { %>
+        <div class="producto-card">
+          <img src="<%= producto.imagen || 'https://via.placeholder.com/250' %>" alt="<%= producto.nombre %>">
+          <h3><%= producto.nombre %></h3>
+          <p class="descripcion"><%= producto.descripcion %></p>
+          <p class="precio">$<%= Number(producto.precio).toFixed(2) %></p>
+          <p class="stock">Stock: <%= producto.stock %></p>
+          <form action="/carrito/agregar" method="POST">
+            <input type="hidden" name="productoId" value="<%= producto.id %>">
+            <button type="submit" class="btn-add-cart">Agregar al Carrito</button>
+          </form>
+        </div>
+      <% }) %>
+    </div>
+  </main>
+
+  <!-- Modal de Login -->
+  <div id="loginModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('loginModal')">&times;</span>
+      <h2>Iniciar Sesión</h2>
+      <form action="/login" method="POST">
+        <input type="email" name="email" placeholder="Correo electrónico" required>
+        <input type="password" name="password" placeholder="Contraseña" required>
+        <button type="submit" class="btn-primary">Entrar</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal de Registro -->
+  <div id="registroModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('registroModal')">&times;</span>
+      <h2>Crear Cuenta</h2>
+      <form action="/registro" method="POST">
+        <input type="text" name="nombre" placeholder="Nombre completo" required>
+        <input type="email" name="email" placeholder="Correo electrónico" required>
+        <input type="password" name="password" placeholder="Contraseña" required>
+        <button type="submit" class="btn-primary">Registrarse</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Mapeo manual de imágenes
+    const imagenesProductos = {
+      1: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=500&h=500&fit=crop',
+      2: 'https://m.media-amazon.com/images/I/716fAVud8PL._AC_SX466_.jpg',
+      3: 'https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?w=500&h=500&fit=crop',
+      4: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=500&h=500&fit=crop',
+      5: 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=500&h=500&fit=crop',
+      6: 'https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=500&h=500&fit=crop',
+      7: 'https://images.unsplash.com/photo-1545127398-14699f92334b?w=500&h=500&fit=crop',
+      8: 'https://images.unsplash.com/photo-1579586337278-3befd40fd17a?w=500&h=500&fit=crop',
+      9: 'https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?w=500&h=500&fit=crop',
+      10: 'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=500&h=500&fit=crop',
+      11: 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=500&h=500&fit=crop',
+      12: 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=500&h=500&fit=crop',
+      13: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=500&h=500&fit=crop',
+      14: 'https://images.unsplash.com/photo-1531492746076-161ca9bcad58?w=500&h=500&fit=crop',
+      15: 'https://images.unsplash.com/photo-1606904825846-647eb07f5be2?w=500&h=500&fit=crop',
+      16: 'https://images.unsplash.com/photo-1578303512597-81e6cc155b3e?w=500&h=500&fit=crop',
+      17: 'https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?w=500&h=500&fit=crop',
+      18: 'https://images.unsplash.com/photo-1621259182978-fbf93132d53d?w=500&h=500&fit=crop',
+      19: 'https://images.unsplash.com/photo-1593784991095-a205069470b6?w=500&h=500&fit=crop',
+      20: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=500&h=500&fit=crop'
+    };
+
+
+    // Aplicar imágenes
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('.producto-card img').forEach((img, index) => {
+        const productoId = index + 1;
+        if (imagenesProductos[productoId]) {
+          img.src = imagenesProductos[productoId];
+        }
+      });
+    });
+
+    function openModal(modalId) {
+      document.getElementById(modalId).style.display = 'block';
+    }
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+      if (event.target.classList.contains('modal')) {
+        event.target.style.display = 'none';
+      }
+    }
+  </script>
+</body>
+</html>

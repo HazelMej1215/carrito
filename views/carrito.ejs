@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Carrito de Compras</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <h1>TechStore</h1>
+      <nav>
+        <a href="/productos">Productos</a>
+        <% if (user) { %>
+          <a href="/carrito">Carrito (<%= cartCount %>)</a>
+          <a href="/historial">Mis Órdenes</a>
+          <span>Hola, <%= user.nombre %></span>
+          <form action="/logout" method="POST" style="display:inline;">
+            <button type="submit" class="btn-logout">Cerrar Sesión</button>
+          </form>
+        <% } else { %>
+          <a href="/carrito">Carrito (<%= cartCount %>)</a>
+          <a href="/productos">Iniciar Sesión</a>
+        <% } %>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <h2>Mi Carrito</h2>
+
+    <% if (cart.length === 0) { %>
+      <p class="empty-cart">Tu carrito está vacío.</p>
+      <a href="/productos" class="btn-primary">Ver Productos</a>
+    <% } else { %>
+      <table class="cart-table">
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Precio</th>
+            <th>Cantidad</th>
+            <th>Subtotal</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% cart.forEach(item => { %>
+            <tr>
+              <td><%= item.nombre %></td>
+              <td>$<%= item.precio.toFixed(2) %></td>
+              <td>
+                <form action="/carrito/actualizar" method="POST" style="display:inline;">
+                  <input type="hidden" name="productoId" value="<%= item.producto_id %>">
+                  <input type="number" name="cantidad" value="<%= item.cantidad %>" min="1" style="width:60px;">
+                  <button type="submit" class="btn-small">Actualizar</button>
+                </form>
+              </td>
+              <td>$<%= (item.precio * item.cantidad).toFixed(2) %></td>
+              <td>
+                <form action="/carrito/eliminar" method="POST" style="display:inline;">
+                  <input type="hidden" name="productoId" value="<%= item.producto_id %>">
+                  <button type="submit" class="btn-danger">Eliminar</button>
+                </form>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+
+      <div class="cart-summary">
+        <h3>Total: $<span id="totalDisplay"><%= total.toFixed(2) %></span></h3>
+        <a href="/checkout" class="btn-success">Proceder al Pago</a>
+      </div>
+    <% } %>
+  </main>
+
+  <script>
+    function calcularTotal() {
+      let total = 0;
+      const filas = document.querySelectorAll('.cart-table tbody tr');
+      
+      filas.forEach(fila => {
+        const precio = parseFloat(fila.children[1].textContent.replace('$', ''));
+        const cantidad = parseInt(fila.querySelector('input[name="cantidad"]').value);
+        const subtotal = precio * cantidad;
+        fila.children[3].textContent = '$' + subtotal.toFixed(2);
+        total += subtotal;
+      });
+      
+      document.getElementById('totalDisplay').textContent = total.toFixed(2);
+    }
+
+    document.querySelectorAll('input[name="cantidad"]').forEach(input => {
+      input.addEventListener('change', calcularTotal);
+    });
+  </script>
+</body>
+</html>
