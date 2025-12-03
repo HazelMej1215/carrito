@@ -46,6 +46,10 @@ function requireLogin(req, res, next) {
   if (!req.session.user) {
     return res.redirect('/productos?loginError=Debes iniciar sesión para continuar.');
   }
+  
+app.get('/', (req, res) => {
+  res.redirect('/productos');
+});
   next();
 }
 
